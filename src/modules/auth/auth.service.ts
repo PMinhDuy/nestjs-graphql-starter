@@ -23,8 +23,10 @@ export class AuthService {
 
     const hashed = await bcrypt.hash(input.password, 12);
     const user = await this.usersService.create({
-      ...input,
+      email: input.email,
+      name: input.name,
       password: hashed,
+      role: input.role,
     });
 
     const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });

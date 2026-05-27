@@ -25,3 +25,12 @@ Thumbs.db
 # Generated
 src/schema.gql
 coverage/
+tsconfig.build.tsbuildinfo
+
+# Lambda build artifacts
+function.zip
+
+# Tools
+.codebuff/
+.npmrc
+pnpm-lock.yaml

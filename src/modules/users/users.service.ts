@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User } from './user.entity';
 
-type CreateUserInput = Pick<User, 'email' | 'password' | 'name'>;
+type CreateUserInput = Pick<User, 'email' | 'password' | 'name'> & Partial<Pick<User, 'role'>>;
 
 @Injectable()
 export class UsersService {
