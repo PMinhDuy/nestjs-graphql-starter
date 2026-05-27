@@ -24,8 +24,9 @@ async function bootstrap(): Promise<Handler> {
   );
 
   app.setGlobalPrefix("api");
+  const allowedOrigins = process.env.ALLOWED_ORIGINS;
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") ?? "*",
+    origin: !allowedOrigins || allowedOrigins === "*" ? "*" : allowedOrigins.split(","),
   });
 
   await app.init();
