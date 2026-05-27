@@ -30,6 +30,7 @@ import { Transaction } from './modules/finance/transaction.entity';
         : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       csrfPrevention: false,
+      introspection: true,
       context: ({ req }: { req: Request }) => ({ req }),
     }),
     TypeOrmModule.forRootAsync({
