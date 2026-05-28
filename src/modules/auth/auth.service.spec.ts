@@ -3,6 +3,11 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
+
+jest.mock('bcryptjs', () => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
 import { UsersService } from '../users/users.service';
 
 describe('AuthService', () => {
@@ -72,7 +77,7 @@ describe('AuthService', () => {
 
     it('throws UnauthorizedException for wrong password', async () => {
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => false);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
         service.login({ email: mockUser.email, password: 'wrong' }),
@@ -81,7 +86,7 @@ describe('AuthService', () => {
 
     it('returns auth response on valid credentials', async () => {
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
-      jest.spyOn(bcrypt, 'compare').mockImplementation(async () => true);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
       const result = await service.login({
         email: mockUser.email,
