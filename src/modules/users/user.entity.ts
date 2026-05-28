@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { Transaction } from '../finance/transaction.entity';
+import { Address } from './address.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -48,7 +48,7 @@ export class User {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Field(() => [Transaction], { nullable: true })
-  @OneToMany(() => Transaction, (transaction) => transaction.user)
-  transactions?: Transaction[];
+  @Field(() => [Address], { nullable: true })
+  @OneToMany(() => Address, (address) => address.user)
+  addresses?: Address[];
 }

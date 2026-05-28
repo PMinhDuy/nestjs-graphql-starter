@@ -1,0 +1,44 @@
+import { InputType, Field, Float, Int, ID } from '@nestjs/graphql';
+import { IsString, IsNumber, Min, IsUUID, IsArray, IsOptional, IsBoolean, Matches } from 'class-validator';
+
+@InputType()
+export class UpdateProductInput {
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @Field({ nullable: true })
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @Field(() => Float, { nullable: true })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  price?: number;
+
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  stock?: number;
+
+  @Field(() => ID, { nullable: true })
+  @IsUUID()
+  @IsOptional()
+  categoryId?: string;
+
+  @Field(() => [String], { nullable: true })
+  @IsArray()
+  @IsString({ each: true })
+  @Matches(/^products\/[0-9a-f-]{36}\/.+$/, { each: true, message: 'Invalid image key format' })
+  @IsOptional()
+  imageKeys?: string[];
+
+  @Field({ nullable: true })
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}

@@ -1,7 +1,6 @@
-import { Resolver, Query, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query } from '@nestjs/graphql';
 import { User, UserRole } from './user.entity';
 import { UsersService } from './users.service';
-import { Transaction } from '../finance/transaction.entity';
 import { CurrentUser, Roles } from '../../common/decorators';
 
 @Resolver(() => User)
@@ -17,10 +16,5 @@ export class UsersResolver {
   @Query(() => User)
   async me(@CurrentUser() user: User): Promise<User> {
     return user;
-  }
-
-  @ResolveField(() => [Transaction])
-  async transactions(@Parent() user: User): Promise<Transaction[]> {
-    return user.transactions ?? [];
   }
 }

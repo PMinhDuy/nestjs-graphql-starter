@@ -20,10 +20,15 @@
     "migration:revert": "npm run typeorm -- migration:revert --dataSource src/data-source.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1055.0",
+    "@aws-sdk/client-sns": "^3.1055.0",
+    "@aws-sdk/client-sqs": "^3.1055.0",
+    "@aws-sdk/s3-request-presigner": "^3.1055.0",
     "@nestjs/apollo": "^12.0.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/cqrs": "^11.0.3",
     "@nestjs/graphql": "^12.0.0",
     "@nestjs/jwt": "^10.0.0",
     "@nestjs/passport": "^10.0.0",
@@ -37,6 +42,7 @@
     "class-validator": "^0.14.0",
     "dataloader": "^2.2.2",
     "graphql": "^16.8.0",
+    "ioredis": "^5.11.0",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.11.0",
