@@ -36,5 +36,5 @@ function.zip
 
 # Tools
 .codebuff/
-.npmrc
-pnpm-lock.yaml
+
+
