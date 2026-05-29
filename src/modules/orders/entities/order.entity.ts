@@ -43,7 +43,7 @@ export class Order {
   totalAmount: number;
 
   @Field(() => ID, { nullable: true })
-  @Column({ nullable: true })
+  @Column({ type: 'uuid', nullable: true })
   shippingAddressId?: string | null;
 
   @Field(() => [OrderItem])

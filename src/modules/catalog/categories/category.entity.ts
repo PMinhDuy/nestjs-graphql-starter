@@ -21,7 +21,7 @@ export class Category {
   name: string;
 
   @Field({ nullable: true })
-  @Column({ nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   description?: string | null;
 
   @Field()
