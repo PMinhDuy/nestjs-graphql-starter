@@ -37,7 +37,7 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
         : join(process.cwd(), 'src/schema.gql'),
       sortSchema: true,
       csrfPrevention: process.env.NODE_ENV === 'production',
-      introspection: process.env.NODE_ENV !== 'production',
+      introspection: true,
       context: ({ req }: { req: Request }) => ({ req }),
     }),
     TypeOrmModule.forRootAsync({
