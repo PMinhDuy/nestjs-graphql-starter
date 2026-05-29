@@ -20,7 +20,7 @@ export class Category {
   @Column({ unique: true })
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', nullable: true })
   description?: string | null;
 

@@ -28,7 +28,7 @@ export class Address {
   @Column()
   country: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @Column({ type: 'varchar', nullable: true })
   postalCode?: string | null;
 
