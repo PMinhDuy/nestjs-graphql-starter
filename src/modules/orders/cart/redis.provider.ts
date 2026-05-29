@@ -12,6 +12,9 @@ export const RedisProvider = {
       host: config.get<string>('redis.host'),
       port: config.get<number>('redis.port'),
       tls: config.get<boolean>('redis.tls') ? {} : undefined,
+      lazyConnect: true,
+      enableOfflineQueue: false,
+      maxRetriesPerRequest: 1,
     });
     client.on('error', (err) => console.error('[Redis] connection error', err.message));
     return client;
