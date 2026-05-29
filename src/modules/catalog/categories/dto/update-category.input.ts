@@ -3,17 +3,17 @@ import { IsString, IsOptional, IsBoolean } from 'class-validator';
 
 @InputType()
 export class UpdateCategoryInput {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @Field({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

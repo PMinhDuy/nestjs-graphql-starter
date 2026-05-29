@@ -3,12 +3,12 @@ import { IsString, IsNumber, Min, IsUUID, IsArray, IsOptional, IsBoolean, Matche
 
 @InputType()
 export class UpdateProductInput {
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   description?: string;
@@ -37,7 +37,7 @@ export class UpdateProductInput {
   @IsOptional()
   imageKeys?: string[];
 
-  @Field({ nullable: true })
+  @Field(() => Boolean, { nullable: true })
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;

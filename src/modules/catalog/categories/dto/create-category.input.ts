@@ -7,7 +7,7 @@ export class CreateCategoryInput {
   @IsString()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsString()
   @IsOptional()
   description?: string;

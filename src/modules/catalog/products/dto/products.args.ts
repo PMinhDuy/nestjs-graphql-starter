@@ -12,7 +12,7 @@ export class ProductsArgs {
   @Min(0)
   offset: number;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @MaxLength(200)
   search?: string;
@@ -21,11 +21,11 @@ export class ProductsArgs {
   @IsOptional()
   categoryId?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   sortBy?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsIn(['ASC', 'DESC'])
   sortOrder?: string;
