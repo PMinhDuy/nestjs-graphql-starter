@@ -1,6 +1,6 @@
 import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { GetMyOrdersQuery } from '../impl/get-my-orders.query';
 import { GetOrderQuery } from '../impl/get-order.query';
@@ -41,7 +41,7 @@ export class GetAllOrdersHandler implements IQueryHandler<GetAllOrdersQuery> {
   constructor(@InjectRepository(Order) private orderRepo: Repository<Order>) {}
 
   execute(query: GetAllOrdersQuery): Promise<Order[]> {
-    const where: Partial<Order> = {};
+    const where: FindOptionsWhere<Order> = {};
     if (query.status) where.status = query.status;
     if (query.userId) where.userId = query.userId;
 
