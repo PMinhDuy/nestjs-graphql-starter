@@ -10,16 +10,21 @@ type StripeClient = InstanceType<typeof Stripe>;
 
 @Injectable()
 export class PaymentsService {
-  private stripe: StripeClient;
+  private _stripe: StripeClient | null = null;
 
   constructor(
     private config: ConfigService,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem) private itemRepo: Repository<OrderItem>,
-  ) {
-    this.stripe = new Stripe(config.get<string>('STRIPE_SECRET_KEY') ?? '', {
-      // Use latest supported API version
-    });
+  ) {}
+
+  private get stripe(): StripeClient {
+    if (!this._stripe) {
+      const key = this.config.get<string>('STRIPE_SECRET_KEY');
+      if (!key) throw new BadRequestException('Stripe is not configured');
+      this._stripe = new Stripe(key);
+    }
+    return this._stripe;
   }
 
   async createCheckoutSession(orderId: string, userId: string): Promise<string> {
