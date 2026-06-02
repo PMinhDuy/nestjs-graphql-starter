@@ -9,7 +9,12 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(',')
-      : ['http://localhost:4200', 'http://localhost:4201'],
+      : [
+          'http://localhost:4200',
+          'http://localhost:4201',
+          'https://react-store-225.pages.dev',
+          'https://inventory-admin-4ym.pages.dev',
+        ],
     credentials: true,
   });
 
