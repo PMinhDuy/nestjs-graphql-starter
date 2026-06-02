@@ -35,6 +35,10 @@ export class Product {
   @Column({ default: 0 })
   stock: number;
 
+  @Field(() => Int)
+  @Column({ default: 10 })
+  lowStockThreshold: number;
+
   // S3 object keys — resolved to signed URLs at query time via @ResolveField
   @Field(() => [String])
   @Column({ type: 'text', array: true, default: '{}' })

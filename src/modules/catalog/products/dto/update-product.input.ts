@@ -25,6 +25,12 @@ export class UpdateProductInput {
   @IsOptional()
   stock?: number;
 
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  lowStockThreshold?: number;
+
   @Field(() => ID, { nullable: true })
   @IsUUID()
   @IsOptional()

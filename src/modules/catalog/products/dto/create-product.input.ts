@@ -22,6 +22,12 @@ export class CreateProductInput {
   @Min(0)
   stock: number;
 
+  @Field(() => Int, { nullable: true })
+  @IsNumber()
+  @Min(1)
+  @IsOptional()
+  lowStockThreshold?: number;
+
   @Field(() => ID)
   @IsUUID()
   categoryId: string;
