@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, ResolveField, Parent, Int } from '@nestjs/graphql';
 import { User, UserRole } from './user.entity';
 import { Address } from './address.entity';
 import { UsersService } from './users.service';
 import { CurrentUser, Roles } from '../../common/decorators';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
+import { CustomerProfile } from './dto/customer-profile.type';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -63,5 +64,33 @@ export class UsersResolver {
     @Args('id', { type: () => ID }) id: string,
   ): Promise<Address> {
     return this.usersService.setDefaultAddress(user.id, id);
+  }
+
+  // ─── Customer Management (Admin) ──────────────────────────────────────────
+
+  @Roles(UserRole.ADMIN)
+  @Query(() => [CustomerProfile])
+  async customers(
+    @Args('search', { type: () => String, nullable: true }) search?: string,
+    @Args('limit', { type: () => Int, defaultValue: 20 }) limit?: number,
+    @Args('offset', { type: () => Int, defaultValue: 0 }) offset?: number,
+  ): Promise<CustomerProfile[]> {
+    return this.usersService.getCustomers(search, limit, offset);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Query(() => CustomerProfile)
+  async customer(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<CustomerProfile> {
+    return this.usersService.getCustomer(id);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Mutation(() => User)
+  async deactivateUser(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<User> {
+    return this.usersService.deactivateUser(id);
   }
 }

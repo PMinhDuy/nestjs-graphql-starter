@@ -82,4 +82,27 @@ export class ProductsResolver {
   ): Promise<Product[]> {
     return this.productsService.findRelated(product.id, product.categoryId, limit);
   }
+
+  @Roles(UserRole.ADMIN)
+  @Query(() => PaginatedProducts)
+  adminProducts(@Args() args: ProductsArgs): Promise<PaginatedProducts> {
+    return this.productsService.findAllAdmin(args);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Mutation(() => Int)
+  bulkUpdateProducts(
+    @Args('ids', { type: () => [ID] }) ids: string[],
+    @Args('isActive') isActive: boolean,
+  ): Promise<number> {
+    return this.productsService.bulkUpdate(ids, isActive);
+  }
+
+  @Roles(UserRole.ADMIN)
+  @Mutation(() => Int)
+  bulkDeleteProducts(
+    @Args('ids', { type: () => [ID] }) ids: string[],
+  ): Promise<number> {
+    return this.productsService.bulkDelete(ids);
+  }
 }

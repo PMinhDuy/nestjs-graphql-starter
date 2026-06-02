@@ -6,6 +6,7 @@ import { UpdateOrderStatusCommand } from './commands/impl/update-order-status.co
 import { GetMyOrdersQuery } from './queries/impl/get-my-orders.query';
 import { GetOrderQuery } from './queries/impl/get-order.query';
 import { GetAllOrdersQuery } from './queries/impl/get-all-orders.query';
+import { ExportOrdersQuery } from './queries/impl/export-orders.query';
 import { CancelOrderCommand } from './commands/impl/cancel-order.command';
 import { CurrentUser, Roles } from '../../common/decorators';
 import { User, UserRole } from '../users/user.entity';
@@ -65,5 +66,15 @@ export class OrdersResolver {
     @Args('status', { type: () => OrderStatus }) status: OrderStatus,
   ): Promise<Order> {
     return this.commandBus.execute(new UpdateOrderStatusCommand(id, status));
+  }
+
+  @Query(() => [Order])
+  @Roles(UserRole.ADMIN)
+  exportOrders(
+    @Args('startDate', { type: () => String, nullable: true }) startDate?: string,
+    @Args('endDate', { type: () => String, nullable: true }) endDate?: string,
+    @Args('status', { type: () => OrderStatus, nullable: true }) status?: OrderStatus,
+  ): Promise<Order[]> {
+    return this.queryBus.execute(new ExportOrdersQuery(startDate, endDate, status));
   }
 }

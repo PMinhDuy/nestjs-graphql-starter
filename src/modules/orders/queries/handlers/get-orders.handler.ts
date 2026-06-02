@@ -5,6 +5,7 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { GetMyOrdersQuery } from '../impl/get-my-orders.query';
 import { GetOrderQuery } from '../impl/get-order.query';
 import { GetAllOrdersQuery } from '../impl/get-all-orders.query';
+import { ExportOrdersQuery } from '../impl/export-orders.query';
 import { Order } from '../../entities/order.entity';
 
 @QueryHandler(GetMyOrdersQuery)
@@ -52,5 +53,23 @@ export class GetAllOrdersHandler implements IQueryHandler<GetAllOrdersQuery> {
       take: query.limit,
       skip: query.offset,
     });
+  }
+}
+
+@QueryHandler(ExportOrdersQuery)
+export class ExportOrdersHandler implements IQueryHandler<ExportOrdersQuery> {
+  constructor(@InjectRepository(Order) private orderRepo: Repository<Order>) {}
+
+  execute(query: ExportOrdersQuery): Promise<Order[]> {
+    const qb = this.orderRepo
+      .createQueryBuilder('o')
+      .leftJoinAndSelect('o.items', 'items')
+      .orderBy('o.createdAt', 'DESC');
+
+    if (query.status) qb.andWhere('o.status = :status', { status: query.status });
+    if (query.startDate) qb.andWhere('o.createdAt >= :startDate', { startDate: new Date(query.startDate) });
+    if (query.endDate) qb.andWhere('o.createdAt <= :endDate', { endDate: new Date(query.endDate) });
+
+    return qb.getMany();
   }
 }

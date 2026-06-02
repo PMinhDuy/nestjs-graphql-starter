@@ -91,4 +91,44 @@ export class ProductsService {
       .take(limit)
       .getMany();
   }
+
+  async findAllAdmin(args: ProductsArgs): Promise<PaginatedProducts> {
+    const qb = this.repo.createQueryBuilder('p');
+
+    if (args.search) {
+      qb.andWhere('p.name ILIKE :search', { search: `%${args.search}%` });
+    }
+    if (args.categoryId) {
+      qb.andWhere('p.categoryId = :categoryId', { categoryId: args.categoryId });
+    }
+
+    const sortCol = args.sortBy && ALLOWED_SORT_COLUMNS.includes(args.sortBy as typeof ALLOWED_SORT_COLUMNS[number])
+      ? args.sortBy
+      : 'createdAt';
+    const sortOrder = args.sortOrder === 'ASC' ? 'ASC' : 'DESC';
+    qb.orderBy(`p.${sortCol}`, sortOrder);
+
+    const [items, total] = await qb.skip(args.offset).take(args.limit).getManyAndCount();
+    return { items, total, hasMore: args.offset + items.length < total };
+  }
+
+  async bulkUpdate(ids: string[], isActive: boolean): Promise<number> {
+    const result = await this.repo
+      .createQueryBuilder()
+      .update(Product)
+      .set({ isActive })
+      .whereInIds(ids)
+      .execute();
+    return result.affected ?? 0;
+  }
+
+  async bulkDelete(ids: string[]): Promise<number> {
+    const result = await this.repo
+      .createQueryBuilder()
+      .delete()
+      .from(Product)
+      .whereInIds(ids)
+      .execute();
+    return result.affected ?? 0;
+  }
 }

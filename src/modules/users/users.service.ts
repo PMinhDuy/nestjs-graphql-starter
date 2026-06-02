@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
-import { User } from './user.entity';
+import { User, UserRole } from './user.entity';
 import { Address } from './address.entity';
+import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { CreateAddressInput } from './dto/create-address.input';
 import { UpdateAddressInput } from './dto/update-address.input';
+import { CustomerProfile } from './dto/customer-profile.type';
 
 type CreateUserInput = Pick<User, 'email' | 'password' | 'name'> & Partial<Pick<User, 'role'>>;
 
@@ -15,6 +17,8 @@ export class UsersService {
     private userRepository: Repository<User>,
     @InjectRepository(Address)
     private addressRepository: Repository<Address>,
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
   ) {}
 
   async create(input: CreateUserInput): Promise<User> {
@@ -80,5 +84,52 @@ export class UsersService {
     await this.addressRepository.update({ userId }, { isDefault: false });
     address.isDefault = true;
     return this.addressRepository.save(address);
+  }
+
+  // ─── Customer Management ──────────────────────────────────────────────────
+
+  async getCustomers(search?: string, limit = 20, offset = 0): Promise<CustomerProfile[]> {
+    const qb = this.userRepository
+      .createQueryBuilder('u')
+      .where('u.role = :role', { role: UserRole.USER });
+
+    if (search) {
+      qb.andWhere('(u.email ILIKE :s OR u.name ILIKE :s)', { s: `%${search}%` });
+    }
+
+    const users = await qb.orderBy('u.createdAt', 'DESC').skip(offset).take(limit).getMany();
+
+    return Promise.all(users.map((user) => this.buildCustomerProfile(user)));
+  }
+
+  async getCustomer(id: string): Promise<CustomerProfile> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+    return this.buildCustomerProfile(user);
+  }
+
+  async deactivateUser(id: string): Promise<User> {
+    const user = await this.userRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+    user.isActive = false;
+    return this.userRepository.save(user);
+  }
+
+  private async buildCustomerProfile(user: User): Promise<CustomerProfile> {
+    const stats = await this.orderRepository
+      .createQueryBuilder('o')
+      .select('COUNT(o.id)::int', 'totalOrders')
+      .addSelect('COALESCE(SUM(o.totalAmount), 0)', 'totalSpent')
+      .addSelect('MAX(o.createdAt)', 'lastOrderAt')
+      .where('o.userId = :userId', { userId: user.id })
+      .andWhere('o.status != :cancelled', { cancelled: OrderStatus.CANCELLED })
+      .getRawOne<{ totalOrders: number; totalSpent: string; lastOrderAt: string | null }>();
+
+    return {
+      user,
+      totalOrders: stats?.totalOrders ?? 0,
+      totalSpent: parseFloat(stats?.totalSpent ?? '0'),
+      lastOrderAt: stats?.lastOrderAt ?? null,
+    };
   }
 }
