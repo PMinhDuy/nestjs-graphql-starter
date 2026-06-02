@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { AuthService } from './auth.service';
 
@@ -31,12 +32,17 @@ describe('AuthService', () => {
     sign: jest.fn().mockReturnValue('token'),
   };
 
+  const mockConfigService = {
+    get: jest.fn().mockReturnValue('test-secret'),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: UsersService, useValue: mockUsersService },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -63,6 +69,7 @@ describe('AuthService', () => {
       });
 
       expect(result.accessToken).toBe('token');
+      expect(result.refreshToken).toBe('token');
       expect(result.user).toEqual(mockUser);
     });
   });
@@ -94,6 +101,7 @@ describe('AuthService', () => {
       });
 
       expect(result.accessToken).toBe('token');
+      expect(result.refreshToken).toBe('token');
       expect(result.user).toEqual(mockUser);
     });
   });
