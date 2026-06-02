@@ -22,9 +22,9 @@ export class AuthService {
   private buildTokens(userId: string, email: string) {
     const payload = { sub: userId, email };
     const accessToken = this.jwtService.sign(payload);
-    // Refresh token lives 7 days regardless of access token expiry setting
+    // Refresh token uses a separate secret so a leaked access token cannot mint new tokens
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.config.get<string>('app.jwtSecret'),
+      secret: this.config.get<string>('JWT_REFRESH_SECRET') ?? this.config.get<string>('app.jwtSecret') + '_refresh',
       expiresIn: '7d',
     });
     return { accessToken, refreshToken };
@@ -61,7 +61,7 @@ export class AuthService {
     let payload: { sub: string; email: string };
     try {
       payload = this.jwtService.verify(token, {
-        secret: this.config.get<string>('app.jwtSecret'),
+        secret: this.config.get<string>('JWT_REFRESH_SECRET') ?? this.config.get<string>('app.jwtSecret') + '_refresh',
       });
     } catch {
       throw new UnauthorizedException('Invalid or expired refresh token');
