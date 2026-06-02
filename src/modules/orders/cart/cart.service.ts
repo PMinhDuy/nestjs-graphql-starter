@@ -29,6 +29,16 @@ export class CartService {
     await this.redis.expire(this.cartKey(userId), CART_TTL);
   }
 
+  async updateItemQuantity(userId: string, productId: string, quantity: number): Promise<void> {
+    if (quantity <= 0) {
+      await this.removeItem(userId, productId);
+      return;
+    }
+    const key = this.cartKey(userId);
+    await this.redis.hset(key, productId, quantity);
+    await this.redis.expire(key, CART_TTL);
+  }
+
   async getCart(userId: string): Promise<CartType> {
     const raw = await this.redis.hgetall(this.cartKey(userId));
     if (!raw || Object.keys(raw).length === 0) return { items: [], total: 0 };

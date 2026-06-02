@@ -12,11 +12,11 @@ import { CartResolver } from './cart/cart.resolver';
 import { OrdersResolver } from './orders.resolver';
 import { PlaceOrderHandler } from './commands/handlers/place-order.handler';
 import { UpdateOrderStatusHandler } from './commands/handlers/update-order-status.handler';
-import { GetMyOrdersHandler, GetOrderHandler } from './queries/handlers/get-orders.handler';
+import { GetMyOrdersHandler, GetOrderHandler, GetAllOrdersHandler } from './queries/handlers/get-orders.handler';
 import { OrderPlacedHandler } from './events/handlers/order-placed.handler';
 
 const CommandHandlers = [PlaceOrderHandler, UpdateOrderStatusHandler];
-const QueryHandlers = [GetMyOrdersHandler, GetOrderHandler];
+const QueryHandlers = [GetMyOrdersHandler, GetOrderHandler, GetAllOrdersHandler];
 const EventHandlers = [OrderPlacedHandler];
 
 @Module({

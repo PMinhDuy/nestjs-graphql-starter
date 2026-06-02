@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
 import { CartService } from './cart.service';
 import { CartType } from './dto/cart.type';
 import { AddToCartInput } from './dto/add-to-cart.input';
@@ -29,6 +29,16 @@ export class CartResolver {
     @Args('productId', { type: () => ID }) productId: string,
   ): Promise<boolean> {
     await this.cartService.removeItem(user.id, productId);
+    return true;
+  }
+
+  @Mutation(() => Boolean)
+  async updateCartItemQuantity(
+    @CurrentUser() user: User,
+    @Args('productId', { type: () => ID }) productId: string,
+    @Args('quantity', { type: () => Int }) quantity: number,
+  ): Promise<boolean> {
+    await this.cartService.updateItemQuantity(user.id, productId, quantity);
     return true;
   }
 }

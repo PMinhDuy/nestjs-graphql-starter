@@ -1,10 +1,11 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID, Int } from '@nestjs/graphql';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { Order, OrderStatus } from './entities/order.entity';
 import { PlaceOrderCommand } from './commands/impl/place-order.command';
 import { UpdateOrderStatusCommand } from './commands/impl/update-order-status.command';
 import { GetMyOrdersQuery } from './queries/impl/get-my-orders.query';
 import { GetOrderQuery } from './queries/impl/get-order.query';
+import { GetAllOrdersQuery } from './queries/impl/get-all-orders.query';
 import { CurrentUser, Roles } from '../../common/decorators';
 import { User, UserRole } from '../users/user.entity';
 
@@ -35,6 +36,17 @@ export class OrdersResolver {
     @Args('id', { type: () => ID }) id: string,
   ): Promise<Order> {
     return this.queryBus.execute(new GetOrderQuery(id, user.id));
+  }
+
+  @Query(() => [Order])
+  @Roles(UserRole.ADMIN)
+  orders(
+    @Args('status', { type: () => OrderStatus, nullable: true }) status?: OrderStatus,
+    @Args('userId', { type: () => ID, nullable: true }) userId?: string,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 50 }) limit = 50,
+    @Args('offset', { type: () => Int, nullable: true, defaultValue: 0 }) offset = 0,
+  ): Promise<Order[]> {
+    return this.queryBus.execute(new GetAllOrdersQuery(status, userId, limit, offset));
   }
 
   @Mutation(() => Order)
