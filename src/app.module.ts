@@ -19,6 +19,7 @@ import { WishlistItem } from './modules/wishlist/wishlist-item.entity';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { Review } from './modules/reviews/review.entity';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { User } from './modules/users/user.entity';
@@ -69,6 +70,7 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
     WishlistModule,
     ReviewsModule,
     AnalyticsModule,
+    PaymentsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

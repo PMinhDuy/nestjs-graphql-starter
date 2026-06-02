@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { UsersService } from '../users/users.service';
 import { LoginInput } from './dto/login.input';
@@ -15,7 +16,19 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private config: ConfigService,
   ) {}
+
+  private buildTokens(userId: string, email: string) {
+    const payload = { sub: userId, email };
+    const accessToken = this.jwtService.sign(payload);
+    // Refresh token lives 7 days regardless of access token expiry setting
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.config.get<string>('app.jwtSecret'),
+      expiresIn: '7d',
+    });
+    return { accessToken, refreshToken };
+  }
 
   async register(input: RegisterInput): Promise<AuthResponse> {
     const existing = await this.usersService.findByEmail(input.email);
@@ -29,8 +42,8 @@ export class AuthService {
       role: input.role,
     });
 
-    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { accessToken, user };
+    const { accessToken, refreshToken } = this.buildTokens(user.id, user.email);
+    return { accessToken, refreshToken, user };
   }
 
   async login(input: LoginInput): Promise<AuthResponse> {
@@ -40,7 +53,24 @@ export class AuthService {
     const valid = await bcrypt.compare(input.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email });
-    return { accessToken, user };
+    const { accessToken, refreshToken } = this.buildTokens(user.id, user.email);
+    return { accessToken, refreshToken, user };
+  }
+
+  async refreshTokens(token: string): Promise<AuthResponse> {
+    let payload: { sub: string; email: string };
+    try {
+      payload = this.jwtService.verify(token, {
+        secret: this.config.get<string>('app.jwtSecret'),
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const { accessToken, refreshToken } = this.buildTokens(user.id, user.email);
+    return { accessToken, refreshToken, user };
   }
 }

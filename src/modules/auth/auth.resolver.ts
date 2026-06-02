@@ -20,4 +20,10 @@ export class AuthResolver {
   async login(@Args('input') input: LoginInput): Promise<AuthResponse> {
     return this.authService.login(input);
   }
+
+  @Public()
+  @Mutation(() => AuthResponse)
+  async refreshToken(@Args('token') token: string): Promise<AuthResponse> {
+    return this.authService.refreshTokens(token);
+  }
 }
