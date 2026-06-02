@@ -4,6 +4,7 @@ import { ExpressAdapter } from "@nestjs/platform-express";
 import { configure as serverlessExpress } from "@vendia/serverless-express";
 import {
   APIGatewayProxyEvent,
+  APIGatewayProxyEventV2,
   APIGatewayProxyResult,
   Callback,
   Context,
@@ -35,14 +36,32 @@ async function bootstrap(): Promise<Handler> {
 }
 
 export const handler = async (
-  event: APIGatewayProxyEvent,
+  event: APIGatewayProxyEvent | APIGatewayProxyEventV2,
   context: Context,
   callback: Callback<APIGatewayProxyResult>
 ): Promise<APIGatewayProxyResult> => {
-  // Prevents Lambda from hanging while TypeORM DB connections remain open
   context.callbackWaitsForEmptyEventLoop = false;
 
-  // Bootstrap once per execution environment; reused on warm invocations
+  // API Gateway HTTP API uses payload format 2.0 — method is in requestContext.http.method.
+  // Short-circuit OPTIONS preflight before serverless-express to guarantee a 200 response.
+  const method =
+    (event as APIGatewayProxyEvent).httpMethod ||
+    (event as APIGatewayProxyEventV2).requestContext?.http?.method;
+  const origin = event.headers?.["origin"] || event.headers?.["Origin"] || "*";
+
+  if (method === "OPTIONS") {
+    return {
+      statusCode: 200,
+      headers: {
+        "Access-Control-Allow-Origin": origin,
+        "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type,Authorization,Accept,X-Requested-With",
+        "Access-Control-Max-Age": "86400",
+      },
+      body: "",
+    };
+  }
+
   if (!cachedServer) {
     cachedServer = await bootstrap();
   }
