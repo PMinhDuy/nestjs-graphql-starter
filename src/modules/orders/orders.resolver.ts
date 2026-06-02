@@ -6,6 +6,7 @@ import { UpdateOrderStatusCommand } from './commands/impl/update-order-status.co
 import { GetMyOrdersQuery } from './queries/impl/get-my-orders.query';
 import { GetOrderQuery } from './queries/impl/get-order.query';
 import { GetAllOrdersQuery } from './queries/impl/get-all-orders.query';
+import { CancelOrderCommand } from './commands/impl/cancel-order.command';
 import { CurrentUser, Roles } from '../../common/decorators';
 import { User, UserRole } from '../users/user.entity';
 
@@ -36,6 +37,14 @@ export class OrdersResolver {
     @Args('id', { type: () => ID }) id: string,
   ): Promise<Order> {
     return this.queryBus.execute(new GetOrderQuery(id, user.id));
+  }
+
+  @Mutation(() => Order)
+  cancelMyOrder(
+    @CurrentUser() user: User,
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<Order> {
+    return this.commandBus.execute(new CancelOrderCommand(id, user.id));
   }
 
   @Query(() => [Order])

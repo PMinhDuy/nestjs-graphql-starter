@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ResolveField, Parent, ID, Int } from '@nestjs/graphql';
 import { Product } from './product.entity';
 import { Category } from '../categories/category.entity';
 import { ProductsService } from './products.service';
@@ -72,5 +72,14 @@ export class ProductsResolver {
   @ResolveField(() => Category)
   category(@Parent() product: Product): Promise<Category> {
     return this.categoriesDataLoader.batchCategories.load(product.categoryId) as Promise<Category>;
+  }
+
+  @Public()
+  @ResolveField(() => [Product])
+  relatedProducts(
+    @Parent() product: Product,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 4 }) limit = 4,
+  ): Promise<Product[]> {
+    return this.productsService.findRelated(product.id, product.categoryId, limit);
   }
 }

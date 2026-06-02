@@ -80,4 +80,15 @@ export class ProductsService {
     await this.repo.remove(product);
     return true;
   }
+
+  async findRelated(productId: string, categoryId: string, limit: number): Promise<Product[]> {
+    return this.repo
+      .createQueryBuilder('p')
+      .where('p.categoryId = :categoryId', { categoryId })
+      .andWhere('p.id != :productId', { productId })
+      .andWhere('p.isActive = true')
+      .orderBy('p.createdAt', 'DESC')
+      .take(limit)
+      .getMany();
+  }
 }

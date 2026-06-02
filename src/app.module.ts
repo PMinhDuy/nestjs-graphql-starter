@@ -14,6 +14,10 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { WishlistItem } from './modules/wishlist/wishlist-item.entity';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { Review } from './modules/reviews/review.entity';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { User } from './modules/users/user.entity';
@@ -49,7 +53,7 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
         password: process.env.DB_PASSWORD ?? 'postgres',
         database: process.env.DB_NAME ?? 'nestjs_graphql',
         // Explicit list required for esbuild bundling (glob patterns don't survive bundling)
-        entities: [User, Address, Product, Category, Order, OrderItem],
+        entities: [User, Address, Product, Category, Order, OrderItem, WishlistItem, Review],
         synchronize: process.env.NODE_ENV !== 'production',
         logging: process.env.NODE_ENV === 'development',
         ssl: process.env.DB_HOST && process.env.DB_HOST !== 'localhost'
@@ -61,6 +65,8 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
     UsersModule,
     CatalogModule,
     OrdersModule,
+    WishlistModule,
+    ReviewsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },
