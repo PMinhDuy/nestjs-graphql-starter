@@ -36,6 +36,10 @@ const result = await build({
     'aws-sdk',
   ],
   minify: true,
+  // Preserve class/function names — NestJS metadata reflection and GraphQL code-first
+  // schema generation depend on runtime class names. Without this, esbuild minification
+  // can produce names like "$R" which are invalid GraphQL identifiers.
+  keepNames: true,
   treeShaking: true,
   logLevel: 'info',
 });
