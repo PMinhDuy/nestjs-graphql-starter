@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -56,7 +58,7 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
         database: process.env.DB_NAME ?? 'nestjs_graphql',
         // Explicit list required for esbuild bundling (glob patterns don't survive bundling)
         entities: [User, Address, Product, Category, Order, OrderItem, WishlistItem, Review],
-        synchronize: process.env.NODE_ENV !== 'production',
+        synchronize: false,
         logging: process.env.NODE_ENV === 'development',
         ssl: process.env.DB_HOST && process.env.DB_HOST !== 'localhost'
           ? { rejectUnauthorized: false }
@@ -73,6 +75,8 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
     PaymentsModule,
   ],
   providers: [
+    { provide: APP_FILTER, useClass: HttpExceptionFilter },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
