@@ -13,6 +13,8 @@ import { priceTransformer } from '../../../common/transformers/price.transformer
 
 export enum OrderStatus {
   PENDING = 'pending',
+  AWAITING_PAYMENT = 'awaiting_payment',
+  PAYMENT_FAILED = 'payment_failed',
   CONFIRMED = 'confirmed',
   PROCESSING = 'processing',
   SHIPPED = 'shipped',

@@ -17,7 +17,8 @@
     "typeorm": "ts-node -r tsconfig-paths/register -r dotenv/config ./node_modules/typeorm/cli.js",
     "migration:generate": "npm run typeorm -- migration:generate --dataSource src/data-source.ts",
     "migration:run": "npm run typeorm -- migration:run --dataSource src/data-source.ts",
-    "migration:revert": "npm run typeorm -- migration:revert --dataSource src/data-source.ts"
+    "migration:revert": "npm run typeorm -- migration:revert --dataSource src/data-source.ts",
+    "seed:local": "node scripts/seed-local.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1055.0",

@@ -20,6 +20,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { WishlistItem } from './modules/wishlist/wishlist-item.entity';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { Review } from './modules/reviews/review.entity';
+import { Payment } from './modules/payments/payment.entity';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -57,7 +58,7 @@ import { OrderItem } from './modules/orders/entities/order-item.entity';
         password: process.env.DB_PASSWORD ?? 'postgres',
         database: process.env.DB_NAME ?? 'nestjs_graphql',
         // Explicit list required for esbuild bundling (glob patterns don't survive bundling)
-        entities: [User, Address, Product, Category, Order, OrderItem, WishlistItem, Review],
+        entities: [User, Address, Product, Category, Order, OrderItem, WishlistItem, Review, Payment],
         synchronize: false,
         logging: process.env.NODE_ENV === 'development',
         ssl: process.env.DB_HOST && process.env.DB_HOST !== 'localhost'

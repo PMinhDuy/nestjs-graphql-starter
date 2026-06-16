@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
+import { Payment, PaymentStatus } from './payment.entity';
 
 type StripeClient = InstanceType<typeof Stripe>;
 
@@ -14,8 +15,10 @@ export class PaymentsService {
 
   constructor(
     private config: ConfigService,
+    @InjectDataSource() private dataSource: DataSource,
     @InjectRepository(Order) private orderRepo: Repository<Order>,
     @InjectRepository(OrderItem) private itemRepo: Repository<OrderItem>,
+    @InjectRepository(Payment) private paymentRepo: Repository<Payment>,
   ) {}
 
   private get stripe(): StripeClient {
@@ -32,6 +35,13 @@ export class PaymentsService {
     if (!order) throw new NotFoundException('Order not found');
     if (order.status !== OrderStatus.PENDING) {
       throw new BadRequestException('Order is not in PENDING status');
+    }
+
+    // Prevent duplicate sessions if a prior attempt already created a PENDING payment
+    const existingPending = await this.paymentRepo.findOneBy({ orderId, status: PaymentStatus.PENDING });
+    if (existingPending) {
+      const existingSession = await this.stripe.checkout.sessions.retrieve(existingPending.stripeSessionId);
+      if (existingSession.url) return existingSession.url;
     }
 
     const items = await this.itemRepo
@@ -62,7 +72,24 @@ export class PaymentsService {
       cancel_url: cancelUrl,
     });
 
-    return session.url ?? '';
+    if (!session.url) throw new BadRequestException('Failed to create Stripe checkout session URL');
+
+    // Atomic: save Payment record + update Order status together
+    await this.dataSource.transaction(async (manager: EntityManager) => {
+      await manager.getRepository(Payment).save(
+        manager.getRepository(Payment).create({
+          orderId,
+          userId,
+          stripeSessionId: session.id,
+          amount: order.totalAmount,
+          currency: 'usd',
+          status: PaymentStatus.PENDING,
+        }),
+      );
+      await manager.getRepository(Order).update(orderId, { status: OrderStatus.AWAITING_PAYMENT });
+    });
+
+    return session.url;
   }
 
   async handleWebhook(payload: Buffer, signature: string): Promise<void> {
@@ -78,19 +105,32 @@ export class PaymentsService {
     }
 
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as { metadata?: { orderId?: string } };
+      const session = event.data.object as { id: string; metadata?: { orderId?: string } };
       const orderId = session.metadata?.orderId;
-      if (orderId) {
-        await this.orderRepo.update(orderId, { status: OrderStatus.CONFIRMED });
-      }
+      if (!orderId) return;
+
+      const payment = await this.paymentRepo.findOneBy({ stripeSessionId: session.id });
+      if (!payment || payment.status !== PaymentStatus.PENDING) return;
+
+      await this.dataSource.transaction(async (manager: EntityManager) => {
+        await manager.getRepository(Payment).update(payment.id, { status: PaymentStatus.SUCCEEDED });
+        await manager.getRepository(Order).update(orderId, { status: OrderStatus.CONFIRMED });
+      });
     }
 
-    if (event.type === 'payment_intent.payment_failed') {
-      const intent = event.data.object as { metadata?: { orderId?: string } };
-      const orderId = intent.metadata?.orderId;
-      if (orderId) {
-        await this.orderRepo.update(orderId, { status: OrderStatus.CANCELLED });
-      }
+    // checkout.session.expired: user abandoned the Stripe Checkout page
+    if (event.type === 'checkout.session.expired') {
+      const session = event.data.object as { id: string; metadata?: { orderId?: string } };
+      const orderId = session.metadata?.orderId;
+      if (!orderId) return;
+
+      const payment = await this.paymentRepo.findOneBy({ stripeSessionId: session.id });
+      if (!payment || payment.status !== PaymentStatus.PENDING) return;
+
+      await this.dataSource.transaction(async (manager: EntityManager) => {
+        await manager.getRepository(Payment).update(payment.id, { status: PaymentStatus.FAILED });
+        await manager.getRepository(Order).update(orderId, { status: OrderStatus.PAYMENT_FAILED });
+      });
     }
   }
 }
