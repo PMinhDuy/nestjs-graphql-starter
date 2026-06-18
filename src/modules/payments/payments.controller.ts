@@ -1,12 +1,13 @@
 import { Controller, Post, Headers, Req, RawBodyRequest, HttpCode, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { PaymentsService } from './payments.service';
+import { Public } from '../../common/decorators';
 
 @Controller('payments')
 export class PaymentsController {
   constructor(private paymentsService: PaymentsService) {}
 
-  // Stripe sends raw body — must use rawBody middleware
+  @Public()
   @Post('webhook')
   @HttpCode(200)
   async stripeWebhook(
